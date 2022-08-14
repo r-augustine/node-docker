@@ -1,18 +1,18 @@
 # syntax=docker/dockerfile:1
 
-FROM node
+FROM node:14.15.4 as base
 
-# You can increase performance by setting NODE_ENV to performance
-# ENV NODE_ENV=production
+WORKDIR /code
+COPY package.json .
+COPY package-lock.json .
 
-# This instructs Docker to use this path as the default location for all
-# subsequent commands
-WORKDIR /app:
-
-COPY ["package.json", "package-lock.json*", "./"]
-
-RUN npm install 
-
+FROM base as test
+RUN npm ci
 COPY . .
+RUN npm run test
+#CMD ["npm", "run", "test"]
 
+FROM base as prod
+RUN npm ci --production
+COPY . .
 CMD ["node", "server.js"]
